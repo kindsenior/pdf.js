@@ -208,7 +208,7 @@ var PDFView = {
         Math.min(pageWidthScale, pageHeightScale), resetAutoSettings);
     }
     if ('auto' == value)
-      this.setScale(Math.min(1.0, pageWidthScale), resetAutoSettings);
+      this.setScale(Math.min(1.0, pageHeightScale), resetAutoSettings);
 
     selectScaleOption(value);
   },
@@ -568,26 +568,26 @@ var PDFView = {
 
   getVisiblePages: function pdfViewGetVisiblePages() {
     var pages = this.pages;
-    var kBottomMargin = 10;
+    var kRightMargin = 10;
     var visiblePages = [];
 
-    var currentHeight = kBottomMargin;
-    var windowTop = window.pageYOffset;
+    var currentWidth = kRightMargin;
+    var windowLeft = window.pageXOffset;
     for (var i = 1; i <= pages.length; ++i) {
       var page = pages[i - 1];
-      var pageHeight = page.height * page.scale + kBottomMargin;
-      if (currentHeight + pageHeight > windowTop)
+      var pageWidth = page.width * page.scale + kRightMargin;
+      if (currentWidth + pageWidth > windowLeft)
         break;
 
-      currentHeight += pageHeight;
+      currentWidth += pageWidth;
     }
 
-    var windowBottom = window.pageYOffset + window.innerHeight;
-    for (; i <= pages.length && currentHeight < windowBottom; ++i) {
+    var windowRight = window.pageXOffset + window.innerWidth;
+    for (; i <= pages.length && currentWidth < windowRight; ++i) {
       var singlePage = pages[i - 1];
-      visiblePages.push({ id: singlePage.id, y: currentHeight,
+      visiblePages.push({ id: singlePage.id, x: currentWidth,
                           view: singlePage });
-      currentHeight += singlePage.height * singlePage.scale + kBottomMargin;
+      currentWidth += singlePage.width * singlePage.scale + kRightMargin;
     }
     return visiblePages;
   },
@@ -657,8 +657,6 @@ var PageView = function pageView(container, content, id, pageWidth, pageHeight,
 
   this.update = function pageViewUpdate(scale) {
     this.scale = scale || this.scale;
-    div.style.width = (this.width * this.scale) + 'px';
-    div.style.height = (this.height * this.scale) + 'px';
 
     while (div.hasChildNodes())
       div.removeChild(div.lastChild);
@@ -759,7 +757,7 @@ var PageView = function pageView(container, content, id, pageWidth, pageHeight,
 
   this.scrollIntoView = function pageViewScrollIntoView(dest) {
       if (!dest) {
-        div.scrollIntoView(true);
+        window.scrollTo(div.offsetLeft, window.scrollY);
         return;
       }
 
@@ -827,7 +825,7 @@ var PageView = function pageView(container, content, id, pageWidth, pageHeight,
         tempDiv.style.width = Math.ceil(width * scale) + 'px';
         tempDiv.style.height = Math.ceil(height * scale) + 'px';
         div.appendChild(tempDiv);
-        tempDiv.scrollIntoView(true);
+        window.scrollTo(tempDiv.offsetLeft, window.scrollY);
         div.removeChild(tempDiv);
       }, 0);
   };
@@ -1253,13 +1251,13 @@ function updateViewarea() {
   var normalizedScaleValue = currentScaleValue == currentScale ?
     currentScale * 100 : currentScaleValue;
 
-  var kViewerTopMargin = 52;
+  var kViewerLeftMargin = 21;
   var pageNumber = firstPage.id;
   var pdfOpenParams = '#page=' + pageNumber;
   pdfOpenParams += '&zoom=' + normalizedScaleValue;
   var currentPage = PDFView.pages[pageNumber - 1];
-  var topLeft = currentPage.getPagePoint(window.pageXOffset,
-    window.pageYOffset - firstPage.y - kViewerTopMargin);
+  var topLeft = currentPage.getPagePoint(
+    window.pageXOffset - firstPage.x - kViewerLeftMargin, window.pageYOffset);
   pdfOpenParams += ',' + Math.round(topLeft.x) + ',' + Math.round(topLeft.y);
 
   var store = PDFView.store;
