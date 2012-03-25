@@ -222,6 +222,8 @@ canvas {
 }
 
 .page {
+  width: 816px;
+  height: 1056px;
   margin: auto 10px;
   position: relative;
   overflow: hidden;
